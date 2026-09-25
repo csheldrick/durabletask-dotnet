@@ -7,7 +7,7 @@ TRACE_TESTS = Path("test/Worker/Grpc.Tests/TraceHelperTests.cs")
 INDEX_TESTS = Path("test/Worker/Grpc.Tests/TracingHistoryEventIndexTests.cs")
 
 trace = TRACE_HELPER.read_text()
-needle = '    static readonly ActivitySource ActivityTraceSource = new ActivitySource(Source);\\n'
+needle = '    static readonly ActivitySource ActivityTraceSource = new ActivitySource(Source);\n'
 addition = '''    static readonly ActivitySource ActivityTraceSource = new ActivitySource(Source);
 
     /// <summary>
