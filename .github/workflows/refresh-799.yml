@@ -25,12 +25,7 @@ jobs:
       - name: Rebuild change on current upstream main
         shell: bash
         run: |
-          cp .github/scripts/refresh-799.py /tmp/refresh-799.py
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('/tmp/refresh-799.py')
-          p.write_text(p.read_text().replace(r'\\\\n', r'\\n'))
-          PY
+          cp .github/scripts/refresh-799-v2.py /tmp/refresh-799.py
           git remote add upstream https://github.com/microsoft/durabletask-dotnet.git || true
           git fetch upstream main
           git reset --hard upstream/main
