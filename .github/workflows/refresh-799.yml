@@ -1,0 +1,59 @@
+name: Refresh PR 799
+
+on:
+  push:
+    branches:
+      - relay/refresh-799
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout helper branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.302
+
+      - name: Rebuild change on current upstream main
+        shell: bash
+        run: |
+          cp .github/scripts/refresh-799.py /tmp/refresh-799.py
+          git remote add upstream https://github.com/microsoft/durabletask-dotnet.git || true
+          git fetch upstream main
+          git reset --hard upstream/main
+          python /tmp/refresh-799.py
+
+      - name: Check diff scope
+        shell: bash
+        run: |
+          git diff --check
+          git diff --name-only | sort > /tmp/actual.txt
+          cat > /tmp/expected.txt <<'EOF'
+          src/Shared/Grpc/Tracing/TraceHelper.cs
+          src/Worker/Grpc/GrpcDurableTaskWorker.Processor.cs
+          src/Worker/Grpc/TracingHistoryEventIndex.cs
+          test/Worker/Grpc.Tests/TraceHelperTests.cs
+          test/Worker/Grpc.Tests/TracingHistoryEventIndexTests.cs
+          EOF
+          sort -o /tmp/expected.txt /tmp/expected.txt
+          diff -u /tmp/expected.txt /tmp/actual.txt
+
+      - name: Test Worker gRPC
+        run: dotnet test test/Worker/Grpc.Tests/Worker.Grpc.Tests.csproj --configuration Release
+
+      - name: Publish refreshed PR head
+        shell: bash
+        run: |
+          git config user.name "Relay"
+          git config user.email "csheldrick+relay@gmail.com"
+          git add             src/Shared/Grpc/Tracing/TraceHelper.cs             src/Worker/Grpc/GrpcDurableTaskWorker.Processor.cs             src/Worker/Grpc/TracingHistoryEventIndex.cs             test/Worker/Grpc.Tests/TraceHelperTests.cs             test/Worker/Grpc.Tests/TracingHistoryEventIndexTests.cs
+          git commit -m "Optimize orchestration history scans for tracing performance"
+          git push --force origin HEAD:main
