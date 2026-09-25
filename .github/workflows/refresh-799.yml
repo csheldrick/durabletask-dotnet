@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           git diff --check
-          git diff --name-only | sort > /tmp/actual.txt
+          { git diff --name-only; git ls-files --others --exclude-standard; } | sort > /tmp/actual.txt
           cat > /tmp/expected.txt <<'EOF'
           src/Shared/Grpc/Tracing/TraceHelper.cs
           src/Worker/Grpc/GrpcDurableTaskWorker.Processor.cs
